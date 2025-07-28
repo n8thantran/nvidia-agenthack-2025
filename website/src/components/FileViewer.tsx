@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { X, File, Download } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import Image from 'next/image'
 
 interface FileViewerProps {
   isOpen: boolean
@@ -72,7 +72,7 @@ export function FileViewer({ isOpen, onClose, fileName, fileType, uploadDate, su
             </div>
           ) : isImageFile && fileUrl ? (
             <div className="flex items-center justify-center h-full p-4">
-              <img
+              <Image
                 src={fileUrl}
                 alt={fileName}
                 className="max-w-full max-h-full object-contain"

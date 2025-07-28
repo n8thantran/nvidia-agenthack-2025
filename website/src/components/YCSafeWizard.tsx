@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -18,9 +18,8 @@ import {
   MapPin,
   Calendar,
   Hash,
-  AlertCircle,
-  Eye,
-  Check
+  Check,
+  LucideIcon
 } from 'lucide-react'
 
 interface YCSafeWizardProps {
@@ -31,7 +30,7 @@ interface WizardStep {
   id: string
   title: string
   description: string
-  icon: any
+  icon: LucideIcon
   fields: (keyof SafeFormData)[]
 }
 
@@ -95,6 +94,7 @@ export function YCSafeWizard({ onBack }: YCSafeWizardProps) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
   const [pdfBytes, setPdfBytes] = useState<Uint8Array | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null)
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set())
 
@@ -382,7 +382,7 @@ function renderStepContent(
               className="text-lg p-3"
             />
             <p className="text-xs text-muted-foreground">
-              Enter your company's full legal name as it appears in your incorporation documents
+              Enter your company&apos;s full legal name as it appears in your incorporation documents
             </p>
           </div>
 
@@ -496,7 +496,7 @@ function renderStepContent(
               className="text-lg p-3"
             />
             <p className="text-xs text-muted-foreground">
-              The investor's title or role (optional)
+              The investor&apos;s title or role (optional)
             </p>
           </div>
 
@@ -512,7 +512,7 @@ function renderStepContent(
               className="text-lg p-3"
             />
             <p className="text-xs text-muted-foreground">
-              The investor's business address (optional)
+              The investor&apos;s business address (optional)
             </p>
           </div>
 
@@ -528,7 +528,7 @@ function renderStepContent(
               className="text-lg p-3"
             />
             <p className="text-xs text-muted-foreground">
-              The investor's email address (optional)
+              The investor&apos;s email address (optional)
             </p>
           </div>
         </div>
@@ -580,7 +580,7 @@ function renderStepContent(
               className="text-lg p-3"
             />
             <p className="text-xs text-muted-foreground">
-              Your company's business address
+              Your company&apos;s business address
             </p>
           </div>
 
@@ -596,7 +596,7 @@ function renderStepContent(
               className="text-lg p-3"
             />
             <p className="text-xs text-muted-foreground">
-              Your company's official email address
+              Your company&apos;s official email address
             </p>
           </div>
         </div>

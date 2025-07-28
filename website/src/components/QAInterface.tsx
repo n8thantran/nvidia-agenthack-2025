@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useApp } from '@/context/AppContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Send, MessageSquare, Clock, User, Bot, Upload, FileText, X, ChevronDown, Plus, Trash2, Loader2, Database, Lightbulb, Search, Eye } from 'lucide-react'
+import { Send, MessageSquare, User, Bot, Upload, FileText, X, ChevronDown, Plus, Trash2, Loader2, Database, Lightbulb, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -23,6 +23,7 @@ Key principles:
 Remember: You are a helpful resource, but not a substitute for professional legal counsel.`
 
 // Mock database files
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const mockDatabaseFiles = [
   { id: '1', name: 'Employment Agreement Template', type: 'Template', category: 'Employment' },
   { id: '2', name: 'NDA Template', type: 'Template', category: 'Confidentiality' },

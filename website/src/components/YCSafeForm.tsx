@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -25,6 +25,7 @@ interface YCSafeFormProps {
   onBack: () => void
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface FormData {
   companyName: string
   companyState: string
@@ -71,6 +72,7 @@ export function YCSafeForm({ onBack }: YCSafeFormProps) {
 
   const [isGenerating, setIsGenerating] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [currentStepIndex, setCurrentStepIndex] = useState(-1)
   const [steps, setSteps] = useState(documentSteps)
   const [pdfBytes, setPdfBytes] = useState<Uint8Array | null>(null)

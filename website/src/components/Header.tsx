@@ -49,7 +49,7 @@ export function Header() {
       icon: page.icon,
       date: 'Navigation',
       action: () => {
-        dispatch({ type: 'SET_ACTIVE_TAB', payload: page.id as any })
+        dispatch({ type: 'SET_ACTIVE_TAB', payload: page.id as 'qa' | 'generator' | 'simulation' })
         setIsSearchOpen(false)
       }
     })),

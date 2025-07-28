@@ -1,4 +1,4 @@
-import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib'
+import { PDFDocument, PDFPage, PDFFont, rgb, StandardFonts } from 'pdf-lib'
 
 export interface SafeFormData {
   companyName: string
@@ -19,8 +19,8 @@ export interface SafeFormData {
 
 export class YCSafePDFGenerator {
   private pdfDoc: PDFDocument | null = null
-  private font: any = null
-  private boldFont: any = null
+  private font: PDFFont | undefined = undefined
+  private boldFont: PDFFont | undefined = undefined
   private pageWidth: number = 612 // Standard 8.5x11 inch page
   private pageHeight: number = 792
   private margin: number = 72 // 1 inch margins
@@ -75,8 +75,8 @@ export class YCSafePDFGenerator {
 
     // Create pages
     await this.createHeaderPage(formData)
-    await this.createMainContentPage(formData)
-    await this.createDefinitionsPage(formData)
+    await this.createMainContentPage()
+    await this.createDefinitionsPage()
     await this.createSignaturePage(formData)
 
     // Save and return PDF
@@ -107,7 +107,7 @@ export class YCSafePDFGenerator {
     yPosition -= 50
 
     // Company Name (centered)
-    const companyNameWidth = this.boldFont.widthOfTextAtSize(formData.companyName, 16)
+    const companyNameWidth = this.boldFont?.widthOfTextAtSize(formData.companyName, 16) || 200
     const centerX = (this.pageWidth - companyNameWidth) / 2
     this.drawText(page, formData.companyName, centerX, yPosition, 16, this.boldFont)
     yPosition -= 40
@@ -133,7 +133,7 @@ export class YCSafePDFGenerator {
     yPosition = this.drawWrappedText(page, valuationCapText, this.margin, yPosition, 11, this.pageWidth - 2 * this.margin)
   }
 
-  private async createMainContentPage(formData: SafeFormData): Promise<void> {
+  private async createMainContentPage(): Promise<void> {
     if (!this.pdfDoc) return
 
     const page = this.pdfDoc.addPage([this.pageWidth, this.pageHeight])
@@ -178,7 +178,7 @@ export class YCSafePDFGenerator {
     yPosition = this.drawWrappedText(page, dissolutionText, this.margin + 40, yPosition, 11, this.pageWidth - 2 * this.margin - 40)
   }
 
-  private async createDefinitionsPage(formData: SafeFormData): Promise<void> {
+  private async createDefinitionsPage(): Promise<void> {
     if (!this.pdfDoc) return
 
     const page = this.pdfDoc.addPage([this.pageWidth, this.pageHeight])
@@ -288,17 +288,17 @@ export class YCSafePDFGenerator {
     }
   }
 
-  private drawText(page: PDFPage, text: string, x: number, y: number, size: number, font?: any): void {
+  private drawText(page: PDFPage, text: string, x: number, y: number, size: number, font?: PDFFont): void {
     page.drawText(text, {
       x,
-      y,
+      y,  
       size,
-      font: font || this.font,
+      font: font || this.font || undefined,
       color: rgb(0, 0, 0)
     })
   }
 
-  private drawWrappedText(page: PDFPage, text: string, x: number, y: number, size: number, maxWidth: number, font?: any): number {
+  private drawWrappedText(page: PDFPage, text: string, x: number, y: number, size: number, maxWidth: number, font?: PDFFont): number {
     const usedFont = font || this.font
     const words = text.split(' ')
     let line = ''
@@ -306,7 +306,7 @@ export class YCSafePDFGenerator {
 
     for (let i = 0; i < words.length; i++) {
       const testLine = line + words[i] + ' '
-      const testWidth = usedFont.widthOfTextAtSize(testLine, size)
+      const testWidth = usedFont?.widthOfTextAtSize(testLine, size) || 0
 
       if (testWidth > maxWidth && i > 0) {
         this.drawText(page, line.trim(), x, currentY, size, usedFont)

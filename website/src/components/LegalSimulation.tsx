@@ -7,7 +7,6 @@ import {
   Zap, 
   Play, 
   TrendingUp, 
-  TrendingDown, 
   AlertTriangle,
   CheckCircle,
   Clock,

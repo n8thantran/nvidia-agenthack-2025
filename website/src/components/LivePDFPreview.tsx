@@ -172,7 +172,7 @@ export function LivePDFPreview({ formData, isGenerating = false }: LivePDFPrevie
           {pdfData ? (
             <div className="bg-white shadow-lg">
               <Document
-                file={pdfData}
+                file={pdfData ? { data: pdfData } : null}
                 onLoadSuccess={onDocumentLoadSuccess}
                 loading={
                   <div className="flex items-center justify-center p-8">
