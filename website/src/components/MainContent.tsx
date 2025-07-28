@@ -25,7 +25,7 @@ export function MainContent() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white">
+    <div className="flex-1 flex flex-col bg-white min-h-0 overflow-hidden">
       {renderContent()}
     </div>
   )

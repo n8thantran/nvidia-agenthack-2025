@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LegalAI - Your AI Legal Assistant",
+  title: "Juri - Your AI Legal Assistant",
   description: "Smart legal assistance for founders and entrepreneurs",
 };
 

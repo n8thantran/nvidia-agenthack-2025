@@ -9,7 +9,7 @@ interface Document {
   uploadDate: Date
   status: 'processing' | 'completed' | 'error'
   summary?: string
-  filledData?: Record<string, any>
+  filledData?: Record<string, unknown>
 }
 
 interface QASession {
@@ -18,6 +18,7 @@ interface QASession {
   answer: string
   timestamp: Date
   category: string
+  files?: File[]
 }
 
 interface AppState {
@@ -35,6 +36,7 @@ type AppAction =
   | { type: 'SET_CURRENT_DOCUMENT'; payload: Document | null }
   | { type: 'ADD_QA_SESSION'; payload: QASession }
   | { type: 'SET_QA_SESSIONS'; payload: QASession[] }
+  | { type: 'DELETE_QA_SESSION'; payload: string }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ACTIVE_TAB'; payload: AppState['activeTab'] }
 
@@ -67,6 +69,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, qaSessions: [...state.qaSessions, action.payload] }
     case 'SET_QA_SESSIONS':
       return { ...state, qaSessions: action.payload }
+    case 'DELETE_QA_SESSION':
+      return { ...state, qaSessions: state.qaSessions.filter(session => session.id !== action.payload) }
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload }
     case 'SET_ACTIVE_TAB':

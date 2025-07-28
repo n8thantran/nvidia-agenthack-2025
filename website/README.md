@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Juri - AI Legal Assistant
 
-## Getting Started
+A modern, AI-powered legal assistant for founders and entrepreneurs, built with Next.js and NVIDIA's Nemotron model.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **AI-Powered Legal Q&A**: Ask legal questions and get intelligent responses
+- **Document Analysis**: Upload PDFs and documents for context-aware analysis
+- **Chat History**: Save and manage conversation history
+- **Modern UI**: Clean, minimal interface inspired by modern SaaS applications
+- **File Upload**: Support for PDF, DOC, DOCX, and TXT files
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **Environment Configuration**:
+   Create a `.env.local` file in the root directory:
+   ```env
+   NVIDIA_API_KEY=your_nvidia_api_key_here
+   NEXT_PUBLIC_APP_URL=http://localhost:3000
+   ```
 
-## Learn More
+3. **Get NVIDIA API Key**:
+   - Visit [NVIDIA AI Playground](https://www.nvidia.com/en-us/ai-data-science/ai-playground/)
+   - Sign up for API access
+   - Get your API key from the dashboard
 
-To learn more about Next.js, take a look at the following resources:
+4. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. **Open your browser**:
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## API Integration
 
-## Deploy on Vercel
+The application uses NVIDIA's Nemotron model for legal Q&A:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Model**: `nvidia/llama-3.3-nemotron-super-49b-v1`
+- **Base URL**: `https://integrate.api.nvidia.com/v1`
+- **Features**: Document analysis, context-aware responses, legal expertise
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## File Support
+
+- **PDF**: Full text extraction and analysis
+- **TXT**: Plain text files
+- **DOC/DOCX**: Microsoft Word documents (basic support)
+
+## Usage
+
+1. **Ask Questions**: Type legal questions in the chat interface
+2. **Upload Documents**: Click the upload button to attach files
+3. **View History**: Use the dropdown to access previous conversations
+4. **Get Insights**: AI analyzes documents and provides legal guidance
+
+## Legal Disclaimer
+
+This application provides general legal information and guidance. It is not a substitute for professional legal advice. Always consult with qualified legal professionals for specific legal matters.
+
+## Tech Stack
+
+- **Frontend**: Next.js 15, React, TypeScript
+- **Styling**: Tailwind CSS
+- **AI**: NVIDIA Nemotron Model
+- **File Processing**: PDF-parse, File API
+- **State Management**: React Context API
