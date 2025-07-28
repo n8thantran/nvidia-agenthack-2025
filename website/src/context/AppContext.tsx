@@ -26,7 +26,7 @@ interface AppState {
   qaSessions: QASession[]
   currentDocument: Document | null
   isLoading: boolean
-  activeTab: 'qa' | 'documents' | 'generator' | 'simulation'
+  activeTab: 'qa' | 'generator' | 'simulation'
 }
 
 type AppAction = 

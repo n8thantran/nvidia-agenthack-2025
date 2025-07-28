@@ -29,12 +29,6 @@ const navigationItems = [
     description: 'Ask legal questions'
   },
   {
-    id: 'documents' as const,
-    label: 'Smart Forms',
-    icon: FileText,
-    description: 'Upload & complete documents'
-  },
-  {
     id: 'generator' as const,
     label: 'Document Generator',
     icon: PlusCircle,
