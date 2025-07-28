@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { YCSafeForm } from '@/components/YCSafeForm'
 import { 
   PlusCircle, 
   FileText, 
@@ -83,6 +84,7 @@ const documentTemplates = [
 export function DocumentGenerator() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const [showYCSafeForm, setShowYCSafeForm] = useState(false)
 
   const categories = ['all', ...Array.from(new Set(documentTemplates.map(t => t.category)))]
 
@@ -95,14 +97,16 @@ export function DocumentGenerator() {
 
   const handleGenerateDocument = (templateId: string) => {
     if (templateId === 'yc-safe') {
-      // This would normally navigate to the YC SAFE form
-      console.log('Opening YC SAFE form...')
-      alert('YC SAFE form generator would open here!')
+      setShowYCSafeForm(true)
     } else {
       // For other templates, show placeholder functionality
       const template = documentTemplates.find(t => t.id === templateId)
       alert(`${template?.title} generator would open here! This feature is currently being developed.`)
     }
+  }
+
+  if (showYCSafeForm) {
+    return <YCSafeForm onBack={() => setShowYCSafeForm(false)} />
   }
 
   return (
