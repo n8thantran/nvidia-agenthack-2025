@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { YCSafeForm } from '@/components/YCSafeForm'
+import { YCSafeWizard } from '@/components/YCSafeWizard'
+import { generatePreviewPDF } from '@/lib/pdfGenerator'
 import { 
   PlusCircle, 
   FileText, 
@@ -12,7 +13,9 @@ import {
   Shield, 
   Briefcase,
   ArrowRight,
-  Star
+  Star,
+  Eye,
+  Loader2
 } from 'lucide-react'
 
 const documentTemplates = [
@@ -85,6 +88,7 @@ export function DocumentGenerator() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [showYCSafeForm, setShowYCSafeForm] = useState(false)
+  const [previewingTemplates, setPreviewingTemplates] = useState<Set<string>>(new Set())
 
   const categories = ['all', ...Array.from(new Set(documentTemplates.map(t => t.category)))]
 
@@ -105,8 +109,33 @@ export function DocumentGenerator() {
     }
   }
 
+  const handlePreviewDocument = async (templateId: string) => {
+    if (templateId === 'yc-safe') {
+      // Add to previewing set
+      setPreviewingTemplates(prev => new Set([...prev, templateId]))
+      
+      try {
+        await generatePreviewPDF()
+      } catch (error) {
+        console.error('Error generating preview:', error)
+        alert('Error generating preview PDF. Please try again.')
+      } finally {
+        // Remove from previewing set
+        setPreviewingTemplates(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(templateId)
+          return newSet
+        })
+      }
+    } else {
+      // For other templates, show placeholder functionality
+      const template = documentTemplates.find(t => t.id === templateId)
+      alert(`Preview for ${template?.title} is not available yet. This feature is currently being developed.`)
+    }
+  }
+
   if (showYCSafeForm) {
-    return <YCSafeForm onBack={() => setShowYCSafeForm(false)} />
+    return <YCSafeWizard onBack={() => setShowYCSafeForm(false)} />
   }
 
   return (
@@ -187,14 +216,36 @@ export function DocumentGenerator() {
                       <span>{template.estimatedTime}</span>
                     </div>
                     
-                    <Button 
-                      className="w-full"
-                      size="sm"
-                      onClick={() => handleGenerateDocument(template.id)}
-                    >
-                      Generate Document
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePreviewDocument(template.id)}
+                        disabled={previewingTemplates.has(template.id)}
+                        className="flex-1"
+                      >
+                        {previewingTemplates.has(template.id) ? (
+                          <>
+                            <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="w-3 h-3 mr-2" />
+                            Preview
+                          </>
+                        )}
+                      </Button>
+                      
+                      <Button 
+                        size="sm"
+                        onClick={() => handleGenerateDocument(template.id)}
+                        className="flex-1"
+                      >
+                        Generate
+                        <ArrowRight className="w-3 h-3 ml-2" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               )

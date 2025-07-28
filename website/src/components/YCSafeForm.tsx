@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { PDFFormFiller, downloadPDF, type SafeFormData } from '@/lib/pdfUtils'
+import { YCSafePDFGenerator, downloadGeneratedPDF, generatePreviewPDF, type SafeFormData } from '@/lib/pdfGenerator'
 import { 
   ArrowLeft,
   FileText,
@@ -17,7 +17,8 @@ import {
   MapPin,
   Calendar,
   Hash,
-  AlertCircle
+  AlertCircle,
+  Eye
 } from 'lucide-react'
 
 interface YCSafeFormProps {
@@ -42,12 +43,12 @@ interface DocumentProgress {
 }
 
 const documentSteps: DocumentProgress[] = [
-  { step: 'Loading PDF template', completed: false, current: false },
-  { step: 'Analyzing form fields', completed: false, current: false },
-  { step: 'Filling document with your data', completed: false, current: false },
-  { step: 'Applying formatting and validation', completed: false, current: false },
-  { step: 'Generating final PDF document', completed: false, current: false },
-  { step: 'Preparing download', completed: false, current: false }
+  { step: 'Initializing PDF document generator', completed: false, current: false },
+  { step: 'Creating document structure and layout', completed: false, current: false },
+  { step: 'Adding legal content and clauses', completed: false, current: false },
+  { step: 'Inserting your data and information', completed: false, current: false },
+  { step: 'Formatting and finalizing document', completed: false, current: false },
+  { step: 'Generating final PDF', completed: false, current: false }
 ]
 
 export function YCSafeForm({ onBack }: YCSafeFormProps) {
@@ -59,7 +60,13 @@ export function YCSafeForm({ onBack }: YCSafeFormProps) {
     valuationCap: '',
     discountRate: '20',
     date: new Date().toISOString().split('T')[0],
-    title: 'Chief Executive Officer'
+    title: 'Chief Executive Officer',
+    founderName: '',
+    companyAddress: '',
+    companyEmail: '',
+    investorTitle: '',
+    investorAddress: '',
+    investorEmail: ''
   })
 
   const [isGenerating, setIsGenerating] = useState(false)
@@ -68,6 +75,7 @@ export function YCSafeForm({ onBack }: YCSafeFormProps) {
   const [steps, setSteps] = useState(documentSteps)
   const [pdfBytes, setPdfBytes] = useState<Uint8Array | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false)
 
   const handleInputChange = (field: keyof SafeFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -82,9 +90,9 @@ export function YCSafeForm({ onBack }: YCSafeFormProps) {
     setSteps(documentSteps.map(step => ({ ...step, completed: false, current: false })))
     
     try {
-      const pdfFiller = new PDFFormFiller()
+      const pdfGenerator = new YCSafePDFGenerator()
       
-      // Step 1: Loading PDF template
+      // Step 1: Initializing PDF document generator
       setSteps(prev => prev.map((step, index) => ({
         ...step,
         current: index === 0,
@@ -93,15 +101,13 @@ export function YCSafeForm({ onBack }: YCSafeFormProps) {
       setCurrentStepIndex(0)
       await new Promise(resolve => setTimeout(resolve, 800))
       
-      await pdfFiller.loadPDF('/Postmoney Safe - Valuation Cap Only - FINAL-f2a64add6d21039ab347ee2e7194141a4239e364ffed54bad0fe9cf623bf1691.pdf')
-      
       setSteps(prev => prev.map((step, index) => ({
         ...step,
         current: false,
         completed: index === 0
       })))
       
-      // Step 2: Analyzing form fields
+      // Step 2: Creating document structure and layout
       setSteps(prev => prev.map((step, index) => ({
         ...step,
         current: index === 1,
@@ -110,16 +116,13 @@ export function YCSafeForm({ onBack }: YCSafeFormProps) {
       setCurrentStepIndex(1)
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      const inspection = await pdfFiller.inspectPDF()
-      console.log('PDF inspection:', inspection)
-      
       setSteps(prev => prev.map((step, index) => ({
         ...step,
         current: false,
         completed: index <= 1
       })))
       
-      // Step 3: Filling document
+      // Step 3: Adding legal content and clauses
       setSteps(prev => prev.map((step, index) => ({
         ...step,
         current: index === 2,
@@ -128,7 +131,13 @@ export function YCSafeForm({ onBack }: YCSafeFormProps) {
       setCurrentStepIndex(2)
       await new Promise(resolve => setTimeout(resolve, 1200))
       
-      // Step 4: Applying formatting
+      setSteps(prev => prev.map((step, index) => ({
+        ...step,
+        current: false,
+        completed: index <= 2
+      })))
+      
+      // Step 4: Inserting your data and information
       setSteps(prev => prev.map((step, index) => ({
         ...step,
         current: index === 3,
@@ -137,26 +146,38 @@ export function YCSafeForm({ onBack }: YCSafeFormProps) {
       setCurrentStepIndex(3)
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // Step 5: Generating final PDF
+      setSteps(prev => prev.map((step, index) => ({
+        ...step,
+        current: false,
+        completed: index <= 3
+      })))
+      
+      // Step 5: Formatting and finalizing document
       setSteps(prev => prev.map((step, index) => ({
         ...step,
         current: index === 4,
         completed: index < 4
       })))
       setCurrentStepIndex(4)
-      
-      const filledPdfBytes = await pdfFiller.fillForm(formData)
-      setPdfBytes(filledPdfBytes)
-      
       await new Promise(resolve => setTimeout(resolve, 800))
       
-      // Step 6: Preparing download
+      setSteps(prev => prev.map((step, index) => ({
+        ...step,
+        current: false,
+        completed: index <= 4
+      })))
+      
+      // Step 6: Generating final PDF
       setSteps(prev => prev.map((step, index) => ({
         ...step,
         current: index === 5,
         completed: index < 5
       })))
       setCurrentStepIndex(5)
+      
+      const generatedPdfBytes = await pdfGenerator.createDocument(formData)
+      setPdfBytes(generatedPdfBytes)
+      
       await new Promise(resolve => setTimeout(resolve, 600))
       
       // Mark all steps as completed
@@ -188,7 +209,19 @@ export function YCSafeForm({ onBack }: YCSafeFormProps) {
   const handleDownload = () => {
     if (pdfBytes) {
       const filename = `YC-SAFE-${formData.companyName.replace(/\s+/g, '-')}-${formData.date}.pdf`
-      downloadPDF(pdfBytes, filename)
+      downloadGeneratedPDF(pdfBytes, filename)
+    }
+  }
+
+  const handlePreview = async () => {
+    setIsGeneratingPreview(true)
+    try {
+      await generatePreviewPDF()
+    } catch (error) {
+      console.error('Error generating preview:', error)
+      alert('Error generating preview PDF. Please try again.')
+    } finally {
+      setIsGeneratingPreview(false)
     }
   }
 
@@ -364,7 +397,7 @@ export function YCSafeForm({ onBack }: YCSafeFormProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        <Card className="max-w-2xl mx-auto">
+        <Card className="max-w-4xl mx-auto">
           <CardHeader>
             <CardTitle>SAFE Agreement Details</CardTitle>
             <CardDescription>
@@ -478,6 +511,91 @@ export function YCSafeForm({ onBack }: YCSafeFormProps) {
               </div>
             </div>
 
+            {/* Company Signature Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold border-b pb-2">Company Signature Information</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Founder/Signatory Name
+                  </label>
+                  <Input
+                    value={formData.founderName}
+                    onChange={(e) => handleInputChange('founderName', e.target.value)}
+                    placeholder="e.g., John Smith"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Company Address
+                  </label>
+                  <Input
+                    value={formData.companyAddress}
+                    onChange={(e) => handleInputChange('companyAddress', e.target.value)}
+                    placeholder="e.g., 123 Main St, San Francisco, CA 94105"
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-medium">
+                    Company Email
+                  </label>
+                  <Input
+                    type="email"
+                    value={formData.companyEmail}
+                    onChange={(e) => handleInputChange('companyEmail', e.target.value)}
+                    placeholder="e.g., founder@company.com"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Investor Signature Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold border-b pb-2">Investor Information (Optional)</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Investor Title
+                  </label>
+                  <Input
+                    value={formData.investorTitle}
+                    onChange={(e) => handleInputChange('investorTitle', e.target.value)}
+                    placeholder="e.g., Managing Partner"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Investor Address
+                  </label>
+                  <Input
+                    value={formData.investorAddress}
+                    onChange={(e) => handleInputChange('investorAddress', e.target.value)}
+                    placeholder="e.g., 456 Investor Ave, New York, NY 10001"
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-medium">
+                    Investor Email
+                  </label>
+                  <Input
+                    type="email"
+                    value={formData.investorEmail}
+                    onChange={(e) => handleInputChange('investorEmail', e.target.value)}
+                    placeholder="e.g., investor@fund.com"
+                  />
+                </div>
+              </div>
+            </div>
+
             <Card className="bg-muted/50">
               <CardContent className="p-4">
                 <h4 className="font-medium text-sm mb-2">About YC SAFE</h4>
@@ -488,15 +606,32 @@ export function YCSafeForm({ onBack }: YCSafeFormProps) {
               </CardContent>
             </Card>
 
-            <Button 
-              onClick={handleGenerate}
-              disabled={!isFormValid()}
-              className="w-full"
-              size="lg"
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Generate YC SAFE Document
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                onClick={handlePreview}
+                disabled={isGeneratingPreview}
+                variant="outline"
+                className="flex-1"
+                size="lg"
+              >
+                {isGeneratingPreview ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Eye className="w-4 h-4 mr-2" />
+                )}
+                {isGeneratingPreview ? 'Generating...' : 'Preview Template'}
+              </Button>
+
+              <Button 
+                onClick={handleGenerate}
+                disabled={!isFormValid()}
+                className="flex-1"
+                size="lg"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Generate Document
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
