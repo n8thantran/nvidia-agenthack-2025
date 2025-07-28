@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { cn } from '@/lib/utils'
+import { FileViewer } from './FileViewer'
 import { 
   MessageSquare, 
   FileText, 
@@ -18,7 +19,9 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Building2,
-  Plus
+  Plus,
+  File,
+  Eye
 } from 'lucide-react'
 
 const navigationItems = [
@@ -91,6 +94,7 @@ export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = React.useState(false)
   const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = useState(false)
   const [selectedCompany, setSelectedCompany] = useState(companies[0])
+  const [viewingFile, setViewingFile] = useState<string | null>(null)
 
   return (
     <div className={cn(
@@ -265,6 +269,45 @@ export function Sidebar() {
               </div>
             )}
 
+            {/* Uploaded Files Section */}
+            {!isCollapsed && (
+              <div className="space-y-1">
+                <div className="px-3 py-2">
+                  <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider">Uploaded Files</h3>
+                </div>
+                <div className="max-h-48 overflow-y-auto">
+                  {state.documents.length === 0 ? (
+                    <div className="px-3 py-2 text-xs text-gray-400">
+                      No files uploaded yet
+                    </div>
+                  ) : (
+                    state.documents.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors group"
+                      >
+                        <File className="w-4 h-4 flex-shrink-0 text-gray-500 group-hover:text-black" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-medium text-gray-700 truncate">
+                            {doc.name}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {doc.uploadDate.toLocaleDateString()}
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => setViewingFile(doc.id)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Eye className="w-3 h-3 text-gray-400 hover:text-gray-600" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Administration Section */}
             {!isCollapsed && (
               <div className="space-y-1">
@@ -304,6 +347,22 @@ export function Sidebar() {
           onClick={() => setIsCompanyDropdownOpen(false)}
         />
       )}
+      
+      {/* File Viewer Modal */}
+      {viewingFile && (() => {
+        const doc = state.documents.find(d => d.id === viewingFile)
+        return doc ? (
+          <FileViewer
+            isOpen={true}
+            onClose={() => setViewingFile(null)}
+            fileName={doc.name}
+            fileType={doc.type}
+            uploadDate={doc.uploadDate}
+            summary={doc.summary}
+            fileUrl={doc.fileUrl}
+          />
+        ) : null
+      })()}
     </div>
   )
 }

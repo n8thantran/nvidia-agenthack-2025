@@ -10,6 +10,8 @@ interface Document {
   status: 'processing' | 'completed' | 'error'
   summary?: string
   filledData?: Record<string, unknown>
+  fileUrl?: string
+  fileData?: Uint8Array
 }
 
 interface QASession {

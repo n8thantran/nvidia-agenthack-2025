@@ -4,10 +4,11 @@ import { useState, useRef, useEffect } from 'react'
 import { useApp } from '@/context/AppContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Send, MessageSquare, Clock, User, Bot, Upload, FileText, X, ChevronDown, Plus, Trash2, Loader2, Database, Lightbulb } from 'lucide-react'
+import { Send, MessageSquare, Clock, User, Bot, Upload, FileText, X, ChevronDown, Plus, Trash2, Loader2, Database, Lightbulb, Search, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { FileViewer } from './FileViewer'
 
 const systemPrompt = `You are a specialized legal AI assistant for founders and entrepreneurs. You provide clear, practical legal guidance while always emphasizing the importance of consulting qualified legal professionals for specific advice.
 
@@ -51,7 +52,7 @@ export function QAInterface() {
   const [fileContents, setFileContents] = useState<string[]>([])
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
   const [currentChatId, setCurrentChatId] = useState<string | null>(null)
-  const [selectedDatabaseFiles, setSelectedDatabaseFiles] = useState<string[]>([])
+  const [selectedUploadedFiles, setSelectedUploadedFiles] = useState<string[]>([])
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -91,11 +92,11 @@ export function QAInterface() {
         messages[messages.length - 1].content += fileContext
       }
 
-      // Add selected database files context
-      if (selectedDatabaseFiles.length > 0) {
-        const selectedFiles = mockDatabaseFiles.filter(file => selectedDatabaseFiles.includes(file.id))
-        const dbFileContext = `\n\nSelected database files:\n${selectedFiles.map(file => `[${file.type}: ${file.name}]`).join('\n')}`
-        messages[messages.length - 1].content += dbFileContext
+      // Add selected uploaded files context
+      if (selectedUploadedFiles.length > 0) {
+        const selectedFiles = state.documents.filter(doc => selectedUploadedFiles.includes(doc.id))
+        const uploadedFileContext = `\n\nSelected uploaded files:\n${selectedFiles.map(doc => `[File: ${doc.name}]`).join('\n')}`
+        messages[messages.length - 1].content += uploadedFileContext
       }
 
       // Call NVIDIA API
@@ -135,7 +136,7 @@ export function QAInterface() {
       setQuestion('')
       setUploadedFiles([])
       setFileContents([])
-      setSelectedDatabaseFiles([])
+      setSelectedUploadedFiles([])
       setCurrentChatId(newSession.id)
     } catch (error) {
       console.error('Error:', error)
@@ -152,7 +153,7 @@ export function QAInterface() {
       setQuestion('')
       setUploadedFiles([])
       setFileContents([])
-      setSelectedDatabaseFiles([])
+      setSelectedUploadedFiles([])
       setCurrentChatId(newSession.id)
     } finally {
       setIsAsking(false)
@@ -183,6 +184,21 @@ export function QAInterface() {
 
       const data = await response.json()
       setFileContents(prev => [...prev, ...data.fileContents])
+      
+      // Add files to global context
+      files.forEach(file => {
+        const fileUrl = URL.createObjectURL(file)
+        const document = {
+          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          name: file.name,
+          type: file.type,
+          uploadDate: new Date(),
+          status: 'completed' as const,
+          summary: `Uploaded via Q&A interface`,
+          fileUrl: fileUrl
+        }
+        dispatch({ type: 'ADD_DOCUMENT', payload: document })
+      })
     } catch (error) {
       console.error('File upload error:', error)
       // Fallback: just show file names
@@ -204,7 +220,7 @@ export function QAInterface() {
     setCurrentChatId(null)
     setUploadedFiles([])
     setFileContents([])
-    setSelectedDatabaseFiles([])
+    setSelectedUploadedFiles([])
     setIsHistoryOpen(false)
   }
 
@@ -215,13 +231,15 @@ export function QAInterface() {
     }
   }
 
-  const toggleDatabaseFile = (fileId: string) => {
-    setSelectedDatabaseFiles(prev => 
+  const toggleUploadedFile = (fileId: string) => {
+    setSelectedUploadedFiles(prev => 
       prev.includes(fileId) 
         ? prev.filter(id => id !== fileId)
         : [...prev, fileId]
     )
   }
+
+  const [viewingFileId, setViewingFileId] = useState<string | null>(null)
 
   const askPresetQuestion = (presetQuestion: string) => {
     setQuestion(presetQuestion)
@@ -383,7 +401,7 @@ export function QAInterface() {
         <div className="bg-white border-t border-gray-200 p-6 flex-shrink-0">
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* File Uploads */}
-            {(uploadedFiles.length > 0 || selectedDatabaseFiles.length > 0) && (
+            {(uploadedFiles.length > 0 || selectedUploadedFiles.length > 0) && (
               <div className="flex flex-wrap gap-2">
                 {uploadedFiles.map((file, index) => (
                   <div key={index} className="flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-200 rounded-lg">
@@ -398,15 +416,15 @@ export function QAInterface() {
                     </button>
                   </div>
                 ))}
-                {selectedDatabaseFiles.map((fileId) => {
-                  const file = mockDatabaseFiles.find(f => f.id === fileId)
-                  return file ? (
+                {selectedUploadedFiles.map((fileId) => {
+                  const doc = state.documents.find(d => d.id === fileId)
+                  return doc ? (
                     <div key={fileId} className="flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-lg">
-                      <Database className="w-3 h-3 text-green-600" />
-                      <span className="text-xs text-green-700">{file.name}</span>
+                      <FileText className="w-3 h-3 text-green-600" />
+                      <span className="text-xs text-green-700">{doc.name}</span>
                       <button
                         type="button"
-                        onClick={() => toggleDatabaseFile(fileId)}
+                        onClick={() => toggleUploadedFile(fileId)}
                         className="text-green-500 hover:text-green-700"
                       >
                         <X className="w-3 h-3" />
@@ -466,66 +484,84 @@ export function QAInterface() {
       {/* Right Sidebar - Fixed */}
       {isRightSidebarOpen && (
         <div className="w-80 bg-white border-l border-gray-200 flex flex-col flex-shrink-0">
-          {/* Database Files */}
+          {/* Uploaded Files */}
           <div className="p-4 border-b border-gray-100">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-6 h-6 bg-green-100 rounded-md flex items-center justify-center">
-                <Database className="w-3 h-3 text-green-600" />
+              <div className="w-6 h-6 bg-blue-100 rounded-md flex items-center justify-center">
+                <FileText className="w-3 h-3 text-blue-600" />
               </div>
-              <h3 className="text-sm font-semibold text-gray-900">Database Files</h3>
+              <h3 className="text-sm font-semibold text-gray-900">Uploaded Files</h3>
             </div>
             <p className="text-xs text-gray-500 mb-4">Select files to include in your query context</p>
             
+            
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {mockDatabaseFiles.map((file) => (
-                <button
-                  key={file.id}
-                  onClick={() => toggleDatabaseFile(file.id)}
-                  className={cn(
-                    "w-full text-left p-3 rounded-lg border transition-all duration-200 group",
-                    selectedDatabaseFiles.includes(file.id)
-                      ? "bg-blue-50 border-blue-200 shadow-sm ring-1 ring-blue-200"
-                      : "bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300"
-                  )}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className={cn(
-                        "w-5 h-5 rounded flex items-center justify-center",
-                        selectedDatabaseFiles.includes(file.id) ? "bg-blue-100" : "bg-gray-100"
-                      )}>
-                        <FileText className={cn(
-                          "w-3 h-3",
-                          selectedDatabaseFiles.includes(file.id) ? "text-blue-600" : "text-gray-500"
-                        )} />
-                      </div>
-                      <span className={cn(
-                        "text-xs px-2 py-0.5 rounded-full font-medium",
-                        file.type === 'Template' 
-                          ? "bg-purple-100 text-purple-700" 
-                          : "bg-orange-100 text-orange-700"
-                      )}>
-                        {file.type}
-                      </span>
-                    </div>
-                    {selectedDatabaseFiles.includes(file.id) && (
-                      <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                      </div>
+              {state.documents.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                  <p className="text-xs text-gray-500">
+                    No files uploaded yet
+                  </p>
+                </div>
+              ) : (
+                state.documents.map((doc) => (
+                  <button
+                    key={doc.id}
+                    onClick={() => toggleUploadedFile(doc.id)}
+                    className={cn(
+                      "w-full text-left p-3 rounded-lg border transition-all duration-200 group",
+                      selectedUploadedFiles.includes(doc.id)
+                        ? "bg-blue-50 border-blue-200 shadow-sm ring-1 ring-blue-200"
+                        : "bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                     )}
-                  </div>
-                  <div className="text-sm font-medium text-gray-900 mb-1 line-clamp-2 leading-tight">
-                    {file.name}
-                  </div>
-                  <div className="text-xs text-gray-500">{file.category}</div>
-                </button>
-              ))}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className={cn(
+                          "w-5 h-5 rounded flex items-center justify-center",
+                          selectedUploadedFiles.includes(doc.id) ? "bg-blue-100" : "bg-gray-100"
+                        )}>
+                          <FileText className={cn(
+                            "w-3 h-3",
+                            selectedUploadedFiles.includes(doc.id) ? "text-blue-600" : "text-gray-500"
+                          )} />
+                        </div>
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-700">
+                          {doc.type.split('/')[1]?.toUpperCase() || 'FILE'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {selectedUploadedFiles.includes(doc.id) && (
+                          <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                            <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                          </div>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setViewingFileId(doc.id)
+                          }}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-200 rounded"
+                        >
+                          <Eye className="w-3 h-3 text-gray-500" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="text-sm font-medium text-gray-900 mb-1 line-clamp-2 leading-tight">
+                      {doc.name}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Uploaded {doc.uploadDate.toLocaleDateString()}
+                    </div>
+                  </button>
+                ))
+              )}
             </div>
             
-            {selectedDatabaseFiles.length > 0 && (
+            {selectedUploadedFiles.length > 0 && (
               <div className="mt-3 pt-3 border-t border-gray-100">
                 <div className="text-xs text-blue-600 font-medium">
-                  {selectedDatabaseFiles.length} file{selectedDatabaseFiles.length !== 1 ? 's' : ''} selected
+                  {selectedUploadedFiles.length} file{selectedUploadedFiles.length !== 1 ? 's' : ''} selected
                 </div>
               </div>
             )}
@@ -567,6 +603,22 @@ export function QAInterface() {
           </div>
         </div>
       )}
+      
+      {/* File Viewer Modal */}
+      {viewingFileId && (() => {
+        const doc = state.documents.find(d => d.id === viewingFileId)
+        return doc ? (
+          <FileViewer
+            isOpen={true}
+            onClose={() => setViewingFileId(null)}
+            fileName={doc.name}
+            fileType={doc.type}
+            uploadDate={doc.uploadDate}
+            summary={doc.summary}
+            fileUrl={doc.fileUrl}
+          />
+        ) : null
+      })()}
     </div>
   )
 }
